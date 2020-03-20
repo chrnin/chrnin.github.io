@@ -2,16 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>préremplissage CRP</title>
+    <title>Préremplissage CRP</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-      table {
+      #app {
+        margin: auto;
+        padding-top: 36px;
+        width: 880px;
+      }
+      form {
+        margin: 36px;
+      }
+      #table {
         border-collapse: collapse;
+        padding: 36px;
+        margin: 36px;
       }
       td {
         border: 1px solid black;
+        padding: 4px;
       }
     </style>
   </head>
@@ -19,13 +30,13 @@
     <div id="app">
       Cette mini-application a pour but de faciliter la création de nouvelles lignes dans le tableau CRP en pré-remplissant ce qui peut l'être.<br>
       Veuillez renseigner le code siret de l'établissement souhaité:
+
       <form @submit="lookup" @submit.prevent="bullshit">
-        <input 
-          v-model="siret" 
+        <input
+          v-model="siret"
           placeholder="indiquez le siret de l'entreprise"
         />
         <input type="submit" @click="lookup" value="générer"/>
-        <p> </p>
         <table id="table" ref="table" v-if="result" @click="CopyToClipboard">
           <tr>
             <td>{{ result.unite_legale.denomination }}</td>
@@ -34,13 +45,11 @@
             <td>{{ result.code_postal.slice(0,2) }}</td>
             <td>{{ result.libelle_commune }}</td>
             <td>{{ result.unite_legale.etablissement_siege.libelle_commune }}</td>
-            <td></td>
-            <td></td>
-          </tr>       
+            <td>{{ libelle[result.activite_principale.slice(0, 2)] }}</td>
+            <td>{{ libelle[result.activite_principale] }}</td>
+          </tr>
         </table>
-        
       </form>
-      <p></p>
     </div>
   </body>
   <script>
@@ -49,126 +58,44 @@
       data: {
         siret: null,
         result: null,
-        regions: {
-          "04": "PACA",
-          "05": "PACA",
-          "06": "PACA",
-          "13": "PACA",
-          "83": "PACA",
-          "84": "PACA",
-          "25": "BFC",
-          "70": "BFC",
-          "39": "BFC",
-          "90": "BFC",
-          "21": "BFC",
-          "58": "BFC",
-          "71": "BFC",
-          "89": "BFC",
-          "44": "PDL",
-          "49": "PDL",
-          "53": "PDL",
-          "72": "PDL",
-          "85": "PDL",
-          "01": "ARA",
-          "03": "ARA",
-          "07": "ARA",
-          "15": "ARA",
-          "26": "ARA",
-          "38": "ARA",
-          "42": "ARA",
-          "43": "ARA",
-          "63": "ARA",
-          "69": "ARA",
-          "73": "ARA",
-          "74": "ARA",
-          "16": "NA",
-          "17": "NA",
-          "19": "NA",
-          "23": "NA",
-          "24": "NA",
-          "33": "NA",
-          "40": "NA",
-          "47": "NA",
-          "64": "NA",
-          "79": "NA",
-          "86": "NA",
-          "87": "NA",
-          "75": "IDF",
-          "77": "IDF",
-          "78": "IDF",
-          "91": "IDF",
-          "92": "IDF",
-          "93": "IDF",
-          "94": "IDF",
-          "95": "IDF",
-          "18": "CVL",
-          "28": "CVL",
-          "36": "CVL",
-          "37": "CVL",
-          "41": "CVL",
-          "45": "CVL",
-          "14": "NOR",
-          "27": "NOR",
-          "50": "NOR",
-          "61": "NOR",
-          "76": "NOR",
-          "02": "HDF",
-          "59": "HDF",
-          "60": "HDF",
-          "62": "HDF",
-          "80": "HDF",
-          "08": "GST",
-          "10": "GST",
-          "51": "GST",
-          "52": "GST",
-          "54": "GST",
-          "55": "GST",
-          "57": "GST",
-          "67": "GST",
-          "68": "GST",
-          "88": "GST",
-          "22": "BRE",
-          "29": "BRE",
-          "35": "BRE",
-          "56": "BRE",
-          "09": "OCC",
-          "11": "OCC",
-          "12": "OCC",
-          "30": "OCC",
-          "31": "OCC",
-          "32": "OCC",
-          "34": "OCC",
-          "46": "OCC",
-          "48": "OCC",
-          "65": "OCC",
-          "66": "OCC",
-          "81": "OCC",
-          "82": "OCC",
-          "20": "CRS",
-        },
+        libelle: null,
+        regions: null,
       },
       computed: {
         siret_trim() {return (this.siret || "").replace(/ /g,'') }
       },
       methods: {
         CopyToClipboard() {
-          if (document.selection) { 
+          if (document.selection) {
               var range = document.body.createTextRange();
               range.moveToElementText(this.$refs["table"]);
               range.select().createTextRange();
-              document.execCommand("copy"); 
+              document.execCommand("copy");
           } else if (window.getSelection) {
               var range = document.createRange();
               range.selectNode(this.$refs["table"]);
               window.getSelection().addRange(range);
               document.execCommand("copy");
-              alert("Les informations sont copiées dans la presse papier") 
+              alert("Les informations sont copiées dans la presse papier")
           }},
         lookup() {
-          axios.get('https://entreprise.data.gouv.fr/api/sirene/v3/etablissements/' + this.siret_trim).then(r => {
-            this.result = r.data.etablissement
-            this.CopyToClipboard()
-          })
+          axios.get('https://raw.githubusercontent.com/chrnin/chrnin.github.io/master/regions.json')
+            .then(r => { this.regions = r.data})
+
+          axios.get('https://raw.githubusercontent.com/chrnin/chrnin.github.io/master/libelles_activites.json')
+            .then(r => {
+              let data = {}
+              r.data.forEach(d => {
+                data[d.code] = d.libelle_complet
+              })
+              this.libelle = data
+            })
+
+          axios.get('https://entreprise.data.gouv.fr/api/sirene/v3/etablissements/' + this.siret_trim)
+            .then(r => {
+              this.result = r.data.etablissement
+              this.CopyToClipboard()
+            })
           return false
         }
       }
