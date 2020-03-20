@@ -65,6 +65,15 @@
         siret_trim() {return (this.siret || "").replace(/ /g,'') }
       },
       methods: {
+        async getSiret() {
+          let id = this.siret_trim
+
+          if (id.length == 9) { //siren au lieu de siret, on prend le siège)
+            let response = await axios.get('https://entreprise.data.gouv.fr/api/sirene/v3/unites_legales/' + id)
+            id = response.data.unite_legale.etablissement_siege.siret
+          }
+          return id
+        },
         CopyToClipboard() {
           if (document.selection) {
               var range = document.body.createTextRange();
@@ -91,11 +100,13 @@
               this.libelle = data
             })
 
-          axios.get('https://entreprise.data.gouv.fr/api/sirene/v3/etablissements/' + this.siret_trim)
+          this.getSiret().then(siret => {
+            axios.get('https://entreprise.data.gouv.fr/api/sirene/v3/etablissements/' + siret)
             .then(r => {
               this.result = r.data.etablissement
               this.CopyToClipboard()
             })
+          })
           return false
         }
       }
