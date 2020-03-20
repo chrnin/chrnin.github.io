@@ -37,8 +37,18 @@
           placeholder="indiquez le siret de l'entreprise"
         />
         <input type="submit" @click="lookup" value="générer"/>
-        <table id="table" ref="table" v-if="result" @click="CopyToClipboard">
+        <table id="table" v-if="result" @click="CopyToClipboard">
           <tr>
+            <th> Dénomination entreprise </th>
+            <th> Siret </th>
+            <th> Région </th>
+            <th> Département </th>
+            <th> Commune établissement </th>
+            <th> Commune siège </th>
+            <th> Libelle code ape niveau 2 </th>
+            <th> Libelle code ape </th>
+          </tr>
+          <tr ref="info">
             <td>{{ result.unite_legale.denomination }}</td>
             <td>{{ result.siret }}</td>
             <td>{{ regions[result.code_postal.slice(0,2)] }}</td>
@@ -77,12 +87,12 @@
         CopyToClipboard() {
           if (document.selection) {
               var range = document.body.createTextRange();
-              range.moveToElementText(this.$refs["table"]);
+              range.moveToElementText(this.$refs["info"]);
               range.select().createTextRange();
               document.execCommand("copy");
           } else if (window.getSelection) {
               var range = document.createRange();
-              range.selectNode(this.$refs["table"]);
+              range.selectNode(this.$refs["info"]);
               window.getSelection().addRange(range);
               document.execCommand("copy");
               alert("Les informations sont copiées dans la presse papier")
