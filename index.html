@@ -37,7 +37,7 @@
           placeholder="indiquez le siret de l'entreprise"
         />
         <input type="submit" @click="lookup" value="générer"/>
-        <table id="table" v-if="result" @click="CopyToClipboard">
+        <table id="table" v-if="result">
           <tr>
             <th> Dénomination entreprise </th>
             <th> Siret </th>
@@ -59,6 +59,7 @@
             <td>{{ libelle[result.activite_principale] }}</td>
           </tr>
         </table>
+        <input v-if="result" type="button" value="copier le contenu à nouveau" @click="CopyToClipboard"/>
       </form>
     </div>
   </body>
@@ -73,6 +74,19 @@
       },
       computed: {
         siret_trim() {return (this.siret || "").replace(/ /g,'') }
+      },
+      mounted() {
+        axios.get('https://raw.githubusercontent.com/chrnin/chrnin.github.io/master/regions.json')
+            .then(r => { this.regions = r.data})
+
+        axios.get('https://raw.githubusercontent.com/chrnin/chrnin.github.io/master/libelles_activites.json')
+          .then(r => {
+            let data = {}
+            r.data.forEach(d => {
+              data[d.code] = d.libelle_complet
+            })
+            this.libelle = data
+          })
       },
       methods: {
         async getSiret() {
@@ -95,21 +109,9 @@
               range.selectNode(this.$refs["info"]);
               window.getSelection().addRange(range);
               document.execCommand("copy");
-              alert("Les informations sont copiées dans la presse papier")
+              alert("Les informations sont copiées dans le presse papier. Positionnez le curseur sur la cas siret du tableau avant de coller.")
           }},
         lookup() {
-          axios.get('https://raw.githubusercontent.com/chrnin/chrnin.github.io/master/regions.json')
-            .then(r => { this.regions = r.data})
-
-          axios.get('https://raw.githubusercontent.com/chrnin/chrnin.github.io/master/libelles_activites.json')
-            .then(r => {
-              let data = {}
-              r.data.forEach(d => {
-                data[d.code] = d.libelle_complet
-              })
-              this.libelle = data
-            })
-
           this.getSiret().then(siret => {
             axios.get('https://entreprise.data.gouv.fr/api/sirene/v3/etablissements/' + siret)
             .then(r => {
